@@ -41,7 +41,7 @@ def read_input(filename):
 
 if __name__ == '__main__':
 
-    filename = "data/d.txt"
+    filename = "data/c.txt"
     print(filename)
 
     duration, n_intersections, streets, paths, bonus_points = read_input(filename)
@@ -66,20 +66,31 @@ if __name__ == '__main__':
     for key in intersections.keys():
         values = intersections[key].values()
         if len(values) == 0: continue
-        min_visited = min(values)
-        for street in intersections[key].keys():
-            intersections[key][street] = round(intersections[key][street] / min_visited)
+        # min_visited = min(values)
+        # for street in intersections[key].keys():
+        #     intersections[key][street] = round(intersections[key][street] / min_visited)
 
         values = intersections[key].values()
         sum_visited_after = sum(values)
         if sum_visited_after > light_interval_factor:
+        # if True:
             for street in intersections[key].keys():
-                street_light_interval = round((intersections[key][street] / len(intersections[key])) * light_interval_factor)
+                street_light_interval = round((intersections[key][street] / sum_visited_after) * light_interval_factor)
                 if street_light_interval == 0:
                     intersections[key][street] = None
                 else:
                     intersections[key][street] = street_light_interval
 
+
+    intersections_keys = intersections.keys()
+    delete_keys = []
+    for key in intersections_keys:
+        intersections[key] = {street: intersections[key][street] for street in intersections[key].keys() if
+                              intersections[key][street] is not None}
+        if len(intersections[key]) == 0: delete_keys.append(key)
+
+    for del_key in delete_keys:
+        del intersections[del_key]
 
     print("printing")
     with open(f"out_{filename.replace('data/','')}", "w+") as f:
