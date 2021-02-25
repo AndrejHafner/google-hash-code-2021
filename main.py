@@ -1,7 +1,7 @@
 from collections import defaultdict
 from multiprocessing import Pool
 from tqdm import tqdm
-
+import math
 import pandas as pd
 import numpy as np
 
@@ -42,6 +42,7 @@ def read_input(filename):
 if __name__ == '__main__':
 
     filename = "data/d.txt"
+    print(filename)
 
     duration, n_intersections, streets, paths, bonus_points = read_input(filename)
 
@@ -51,25 +52,42 @@ if __name__ == '__main__':
         for visited_street in car_path[:-1]:
             street_freq[visited_street] += 1
 
-    intersection_interval = 10
+    light_interval_factor = 20
 
     intersections = {}
 
+    print("calculating frequency")
     for i in range(n_intersections):
         streets_in = [street[2] for street in streets if int(street[1]) == i]
         intersections[i] = {street: street_freq[street] for street in streets_in if street_freq[street] > 0}
 
     # Normalize
+    print("normalizing")
     for key in intersections.keys():
         values = intersections[key].values()
+        if len(values) == 0: continue
         min_visited = min(values)
         for street in intersections[key].keys():
             intersections[key][street] = round(intersections[key][street] / min_visited)
 
+        values = intersections[key].values()
+        sum_visited_after = sum(values)
+        if sum_visited_after > light_interval_factor:
+            for street in intersections[key].keys():
+                street_light_interval = round((intersections[key][street] / len(intersections[key])) * light_interval_factor)
+                if street_light_interval == 0:
+                    intersections[key][street] = None
+                else:
+                    intersections[key][street] = street_light_interval
+
+
+    print("printing")
     with open(f"out_{filename.replace('data/','')}", "w+") as f:
         intersections = {key: intersections[key] for key in intersections.keys() if len(intersections[key]) > 0}
         output = f"{len(intersections)}\n"
         for key in intersections.keys():
+            intersections[key] = {street: intersections[key][street] for street in intersections[key].keys() if intersections[key][street] is not None}
+            if len(intersections[key]) == 0:continue
             output += (f"{key}\n")
             output += (f"{len(intersections[key])}\n")
             for street in intersections[key].keys():
