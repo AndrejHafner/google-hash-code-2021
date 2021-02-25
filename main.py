@@ -41,7 +41,7 @@ def read_input(filename):
 
 if __name__ == '__main__':
 
-    filename = "data/c.txt"
+    filename = "data/d.txt"
 
     duration, n_intersections, streets, paths, bonus_points = read_input(filename)
 
@@ -59,6 +59,12 @@ if __name__ == '__main__':
         streets_in = [street[2] for street in streets if int(street[1]) == i]
         intersections[i] = {street: street_freq[street] for street in streets_in if street_freq[street] > 0}
 
+    # Normalize
+    for key in intersections.keys():
+        values = intersections[key].values()
+        min_visited = min(values)
+        for street in intersections[key].keys():
+            intersections[key][street] = round(intersections[key][street] / min_visited)
 
     with open(f"out_{filename.replace('data/','')}", "w+") as f:
         intersections = {key: intersections[key] for key in intersections.keys() if len(intersections[key]) > 0}
